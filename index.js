@@ -1,50 +1,30 @@
 const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const express = require('express');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+const dishRouter = require('./routes/dishRouter');
 
 const hostname = 'localhost';
 const port = 3000;
 
-const server = http.createServer((req,res)=>{
-    console.log(req.headers);
+const app = express();
 
-    if(req.method==='GET'){
-        var fileUrl;
-        if(req.url==='/') fileUrl = '/index.html';
-        else fileUrl = req.url;
-        
-        var filePath = path.resolve('./public'+fileUrl);
-        const fileExt = path.extname(filePath);
-        if(fileExt === '.html'){
-            fs.exists(filePath, (exists)=>{
-                if(!exists){
-                    res.statusCode = 404;
-                    res.setHeader('Content-Type','text/html');
-                    res.end('<html><body><h1>Error 404: ' + fileUrl + 
-                      ' not found</h1></body></html>');                }
-                else{
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type','text/html');
-                    fs.createReadStream(filePath).pipe(res);
-                }
-            })
-        }
-        else{
-            res.statusCode = 404;
-            res.setHeader('Content-Type','text/html');
-            res.end('<html><body><h1>Error 404: ' + fileUrl + 
-            ' not a HTML file</h1></body></html>');
+app.use(morgan('dev'));
+app.use(bodyParser.json());
 
-        }
-    }
-    else{
-        res.statusCode = 404;
-        res.setHeader('Content-Type','text/html');
-        res.end('<html><body><h1>Error 404: ' + req.method + 
-        ' not supported</h1></body></html>');
-    }
-})
+app.use(express.static(__dirname+'/public'));
 
-server.listen(port, hostname, ()=>{
-    console.log(`server running at https://${hostname}:${port}/`)
+app.use('/dishes', dishRouter);
+
+app.use((req,res,next)=>{
+    res.statusCode = 200;
+    res.setHeader('Content','text/json');
+    res.end('<html><body>Welcome to express server</body></html>');
+});
+
+
+const server = http.createServer(app);
+
+server.listen(port, hostname,()=>{
+    console.log(`server connected at https://${hostname}:${port}`);
 })

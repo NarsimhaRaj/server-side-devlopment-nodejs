@@ -1,15 +1,11 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const User = require('../models/user');
-const passport = require('passport');
-const { authenticate } = require('../authenticate');
+var express = require('express');
+var bodyParser = require('body-parser');
+var User = require('../models/user');
+var passport = require('passport');
+var authenticate = require('../authenticate');
 
 const router = express.Router();
 router.use(bodyParser.json());
-
-router.get('/', function (req, res, next) {
-    console.log('');
-});
 
 // router.post('/signup', function (req, res, next) {
 //     User.findOne({ username: req.body.username })
@@ -31,8 +27,8 @@ router.get('/', function (req, res, next) {
 //         })
 // });
 
-router.get('/users', authenticate.verifyAdmin, (req, res, next) => {
-    User.find({}).then((users) => {
+router.get('/', authenticate.verifyAdmin, (req, res, next) => {
+    User.find().then((users) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/plain');
         res.json(users);

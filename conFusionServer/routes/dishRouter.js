@@ -1,19 +1,19 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
+var express = require('express');
+var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
 var authenticate = require('../authenticate');
 
-const Dishes = require('../models/dishes');
-const { populate } = require('../models/dishes');
+var Dishes = require('../models/dishes');
+var { populate } = require('../models/dishes');
 
-const dishRouter = express.Router();
+var dishRouter = express.Router();
 
 dishRouter.use(bodyParser.json());
 
 dishRouter.route('/')
     .get((req, res, next) => {
         Dishes.find({})
-            .populate('customer.author')
+            .populate('comments.author')
             .then((dishes) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
@@ -48,7 +48,7 @@ dishRouter.route('/')
 dishRouter.route('/:dishId')
     .get((req, res, next) => {
         Dishes.findById(req.params.dishId)
-            .populate('customer.author')
+            .populate('comments.author')
             .then((dish) => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
@@ -85,7 +85,7 @@ dishRouter.route('/:dishId')
 dishRouter.route('/:dishId/comments')
     .get((req, res, next) => {
         Dishes.findById(req.params.dishId)
-            .populate('customer.author')
+            .populate('comments.author')
             .then((dish) => {
                 if (dish != null) {
                     res.statusCode = 200;
@@ -104,11 +104,12 @@ dishRouter.route('/:dishId/comments')
         Dishes.findById(req.params.dishId)
             .then((dish) => {
                 if (dish != null) {
+                    req.body.author = req.user._id;
                     dish.comments.push(req.body);
                     dish.save()
                         .then((dish) => {
-                            Dishes.save()
-                                .populate('customer.author')
+                            Dishes.findById(dish._id)
+                                .populate('comments.author')
                                 .then((dish) => {
                                     res.statusCode = 200;
                                     res.setHeader('Content-Type', 'application/json');
@@ -158,7 +159,7 @@ dishRouter.route('/:dishId/comments')
 dishRouter.route('/:dishId/comments/:commentId')
     .get((req, res, next) => {
         Dishes.findById(req.params.dishId)
-            .populate('customer.author')
+            .populate('comments.author')
             .then((dish) => {
                 if (dish != null && dish.comments.id(req.params.commentId) != null) {
                     res.statusCode = 200;
@@ -188,7 +189,7 @@ dishRouter.route('/:dishId/comments/:commentId')
             .populate('comments.auther')
             .then((dish) => {
                 if (dish != null && dish.comments.id(req.params.commentId) != null) {
-                    if (dish.comments.id(req.params.commentId).author._id == req.user._id) {
+                    if (JSON.stringify(dish.comments.id(req.params.commentId).author._id) === JSON.stringify(req.user._id)) {
                         if (req.body.rating) {
                             dish.comments.id(req.params.commentId).rating = req.body.rating;
                         }
@@ -230,7 +231,7 @@ dishRouter.route('/:dishId/comments/:commentId')
             .populate('comments.auther')
             .then((dish) => {
                 if (dish != null && dish.comments.id(req.params.commentId) != null) {
-                    if (dish.comments.id(req.params.commentId).author._id == req.user._id) {
+                    if (JSON.stringify(dish.comments.id(req.params.commentId).author._id) === JSON.stringify(req.user._id)) {
                         dish.comments.id(req.params.commentId).remove();
                         dish.save()
                             .then((dish) => {

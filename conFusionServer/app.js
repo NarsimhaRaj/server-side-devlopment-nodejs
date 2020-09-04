@@ -43,7 +43,7 @@ app.use(express.urlencoded({ extended: false }));
 //   store: new FileStore()
 // }));
 
-app.use(passport.initialize);
+app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', indexRouter);

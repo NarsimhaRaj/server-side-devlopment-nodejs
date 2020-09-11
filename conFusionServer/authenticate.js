@@ -5,6 +5,7 @@ var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
 var jwt = require('jsonwebtoken');
 var config = require('./config.js');
+var FacebookPassportStrategy = require('passport-facebook-token');
 
 passport.use(new LocalStrategy(User.authenticate()));
 
@@ -51,3 +52,29 @@ exports.verifyAdmin = [
         }
     }
 ]
+
+exports.facebookPassport = passport.use(new FacebookPassportStrategy({
+    clientID: config.facebook.clientID,
+    clientSecret: config.facebook.clientSecret
+}, (accessToken, refreshToken, profile, done) => {
+    User.findOne({ facebookId: profile.id }, (err, user) => {
+        if (err) {
+            done(err, false);
+        }
+        else if (user) {
+            done(null, user)
+        }
+        else {
+            user = new User({ username: profile.displayName });
+            user.facebookId = profile.id;
+            user.firstname = profile.name.givenName;
+            user.lastname = profile.name.familyName;
+            user.save((err, user) => {
+                if (err)
+                    return done(err, false);
+                else
+                    return done(null, user);
+            })
+        }
+    })
+}))

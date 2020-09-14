@@ -8,12 +8,12 @@ const favouriteSchema = new Schema({
     },
     favourites: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Dishes'
+        ref: 'Dish'
     }]
 }, {
     timestamps: true
 });
 
-var Dishes = mongoose.model('Favourite', favouriteSchema);
+var Favourites = mongoose.model('Favourite', favouriteSchema);
 
-module.exports = Dishes;
+module.exports = Favourites;

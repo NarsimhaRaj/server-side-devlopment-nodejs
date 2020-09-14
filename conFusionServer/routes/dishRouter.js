@@ -4,7 +4,7 @@ var mongoose = require('mongoose');
 var authenticate = require('../authenticate');
 
 var Dishes = require('../models/dishes');
-var { populate } = require('../models/dishes');
+
 const cors = require('./cors');
 
 var dishRouter = express.Router();
@@ -234,6 +234,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         Dishes.findById(req.params.dishId)
             .populate('comments.auther')
             .then((dish) => {
+                console.log(dish.comments.id(req.params.commentId))
                 if (dish != null && dish.comments.id(req.params.commentId) != null) {
                     if (JSON.stringify(dish.comments.id(req.params.commentId).author._id) === JSON.stringify(req.user._id)) {
                         dish.comments.id(req.params.commentId).remove();
